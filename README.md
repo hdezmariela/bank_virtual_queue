@@ -52,6 +52,6 @@ The queue manager shows all the tickets in queue that each counter has. The red 
 ![](src/images/gui_examples/queue_manager.png)
 
 ### Output Monitor
-The output monitor shows the ticket that is now serving and the ticket that are on queue. 
+The output monitor shows the ticket that is now serving and the ticket that are on queue. It also shows a section of advertisements, which will change when any of the tickets information changes.
 
 ![](src/images/gui_examples/output_monitor.png)
