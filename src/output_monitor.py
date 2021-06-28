@@ -60,11 +60,8 @@ class OutputMonitorWindow(QWidget):
         self.label_4.setAlignment(Qt.AlignCenter)
         self.label_4.setStyleSheet("color: blue")
         
-        # TEST TO DEBUG UPDATE FUNCTION
-        #button = QPushButton('holi')
-        #button.clicked.connect(lambda: self.update_queue_and_add(self.ticket_queue))
+
         vbox = QVBoxLayout()
-        #vbox.addWidget(button)
         vbox.addWidget(self.label_1)
         vbox.addWidget(self.label_2)
         vbox.addWidget(self.label_3)
@@ -83,9 +80,7 @@ class OutputMonitorWindow(QWidget):
         
         self.label_5 = QLabel(id)
         self.label_5.setFont(self.my_font24b)
-        self.label_5.setAlignment(Qt.AlignCenter)
-        #self.label_5.setStyleSheet("color: blue")
-        
+        self.label_5.setAlignment(Qt.AlignCenter)        
         
         self.label_6 = QLabel(counter_text)
         self.label_6.setFont(self.my_font22)
@@ -110,8 +105,6 @@ class OutputMonitorWindow(QWidget):
         self.label_7 = QLabel(id)
         self.label_7.setFont(self.my_font24b)
         self.label_7.setAlignment(Qt.AlignCenter)
-        #self.label_5.setStyleSheet("color: blue")
-        
         
         self.label_8 = QLabel(counter_text)
         self.label_8.setFont(self.my_font22)
@@ -136,8 +129,6 @@ class OutputMonitorWindow(QWidget):
         self.label_9 = QLabel(id)
         self.label_9.setFont(self.my_font24b)
         self.label_9.setAlignment(Qt.AlignCenter)
-        #self.label_5.setStyleSheet("color: blue")
-        
         
         self.label_10 = QLabel(counter_text)
         self.label_10.setFont(self.my_font22)
@@ -162,8 +153,6 @@ class OutputMonitorWindow(QWidget):
         self.label_11 = QLabel(id)
         self.label_11.setFont(self.my_font24b)
         self.label_11.setAlignment(Qt.AlignCenter)
-        #self.label_5.setStyleSheet("color: blue")
-        12
         
         self.label_12 = QLabel(counter_text)
         self.label_12.setFont(self.my_font22)
@@ -248,7 +237,7 @@ def on_message(client, userdata, msg):
         print(f"New ticket ID,counter: {str(msg.payload)}")
         res1 = parse_msg(str(msg.payload, "utf-8"))
         central_queue = [x for x in central_queue if x]
-        print("print1")
+
         print(central_queue)
         id = res1[0]
         counter = res1[1]
@@ -261,9 +250,8 @@ def on_message(client, userdata, msg):
         if len(central_queue) < 10:
             for i in range(10 - len(central_queue)):
                 central_queue.append('')
-        print("print2s")
+
         print(central_queue)
-        #userdata[0].ticket_queue = central_queue
         userdata[0].valueUpdated.emit(central_queue)
     elif msg.topic == "BQMS/ticket_attended":
         print(f"ticket attended ID,counter: {str(msg.payload)}")
@@ -290,7 +278,6 @@ def on_message(client, userdata, msg):
                         found_it = True
                         index = i
                         break
-            
         
         central_queue[0] = central_queue[index]
         central_queue[1] = central_queue[index+1]
@@ -303,7 +290,6 @@ def on_message(client, userdata, msg):
                 central_queue.append('')
         
         userdata[0].valueUpdated.emit(central_queue)
-        
         
     print(msg.topic+" "+str(msg.payload))
 

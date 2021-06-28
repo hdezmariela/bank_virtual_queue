@@ -118,13 +118,9 @@ class QueueManagerWindow(QWidget):
 
         self.label_counter9 = QLabel()
         self.button_counter9 = QPushButton("Counter 9")
-        
         self.buttons.append(self.button_counter9)
-        
         self.button_counter9.setMaximumWidth(75)
-        
         self.button_counter9.setStyleSheet(f"background-color: #1ced2e")
-        
         self.button_counter9.clicked.connect(lambda: self.decrease_queue('S', 0))
         
         grid = QGridLayout()
@@ -226,7 +222,6 @@ class QueueManagerWindow(QWidget):
         print(type)
         print(index)
         if type == 'C':
-            print("entr a tipo C")
             self.buttons[index].setStyleSheet(f"background-color: {self.assign_button_color(self.checkout_queue[index])}")
         elif type == 'P':
             self.buttons[index + 5].setStyleSheet(f"background-color: {self.assign_button_color(self.platform_queue[index])}")
@@ -284,5 +279,3 @@ if __name__ == '__main__':
     # Run the main Qt loop
     logging.info("Main thread (GUI): starting")
     sys.exit(app.exec())
-    #t2 = threading.Thread(target=thread_2, args=(app,))
-    #t2.start()
