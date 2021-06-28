@@ -6,6 +6,8 @@ from PySide6.QtCore import Slot, Qt
 from PySide6.QtGui import QFont
 from datetime import datetime
 import paho.mqtt.client as mqtt
+import threading
+import logging
 
 class TicketStationWidget(QWidget):
     checkout_ticket_counter = 0
@@ -135,12 +137,59 @@ class TicketStationWidget(QWidget):
         print(f'checkout: {self.checkout_queue}')
         print(f'platform: {self.platform_queue}')
         print(f'customer service: {self.customer_service_queue}')
+    
+    @Slot()
+    def decrease_queue(self, msg):
+        print(msg)
+        ss = msg.split(',')
+        print(ss)
+        type = ss[0]
+        index = int(ss[1]) - 1
+        print(type)
+        print(index)
+        
+        if (type == 'C' and self.checkout_queue[index] != 0):
+            print(self.checkout_queue)
+            self.checkout_queue[index] -= 1
+            print(self.checkout_queue)
+        elif (type == 'P' and self.platform_queue[index] != 0):
+            print(self.platform_queue)
+            self.platform_queue[index] -= 1
+            print(self.platform_queue)
+        elif (type == 'S' and self.customer_service_queue[index] != 0):
+            print(self.customer_service_queue)
+            self.customer_service_queue[index] -= 1
+            print(self.customer_service_queue)
+        
+def on_connect(client, userdata, flags, rc):
+    logging.info("Connected with result code " + str(rc))
+    client.subscribe("BQMS/#")
+    
+def on_message(client, userdata, msg):
+    global checkout_queue
+    if msg.topic == "BQMS/ticket_attended":
+        print(f"New ticket ID,counter: {str(msg.payload)}")
+        userdata[0].decrease_queue(str(msg.payload, "utf-8"))
+        
+    print(msg.topic+" "+str(msg.payload))
+
+def thread_function(client):
+    logging.info("Thread mqtt_sub: starting")
+    client.loop_start()
 
 if __name__ == "__main__":
     # mqtt client
-    client = mqtt.Client()
-    print(client)
+    client_userdata = []
+    client = mqtt.Client(userdata=client_userdata)
+    
     client.connect("test.mosquitto.org", 1883, 60)
+    client.on_connect = on_connect
+    client.on_message = on_message
+    
+    # Start mqtt subscribe thread
+    mqtt_sub_thread = threading.Thread(target=thread_function, args=(client,))
+    mqtt_sub_thread.start()
+    
     
     # GUI
     app = QApplication(sys.argv)
@@ -149,6 +198,8 @@ if __name__ == "__main__":
     widget.setWindowTitle('Ticket Station')
     widget.resize(200, 200)
     widget.show()
+    
+    client_userdata.append(widget)
     
     # Run the main Qt loop
     sys.exit(app.exec())

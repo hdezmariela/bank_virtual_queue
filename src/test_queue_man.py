@@ -12,14 +12,11 @@ class QueueManagerWindow(QWidget):
     platform_queue = [0, 0, 2]
     customer_service_queue = [3]
     
-    def __init__(self):
+    def __init__(self, mqtt_client):
         super().__init__()
         
-        #self.checkout_queue = checkout_queue
-        #self.platform_queue = platform_queue
-        #self.customer_service_queue = customer_service_queue
+        self.client = mqtt_client
         
-
         grid = QGridLayout()
         grid.addWidget(self.checkout_group(), 0, 0)
         grid.addWidget(self.platform_group(), 1, 0)
@@ -28,7 +25,8 @@ class QueueManagerWindow(QWidget):
         
         self.update_button_color()
         self.update_in_queue_text()
-
+    
+    @Slot()
     def checkout_group(self):
         groupBox = QGroupBox("Checkout counters")
         self.label_counter1 = QLabel()
@@ -63,7 +61,7 @@ class QueueManagerWindow(QWidget):
 
         return groupBox
     
-    Slot()    
+    @Slot()    
     def platform_group(self):
         groupBox = QGroupBox("Platform counters")
 
@@ -92,7 +90,8 @@ class QueueManagerWindow(QWidget):
         groupBox.setLayout(grid)
 
         return groupBox
-        
+    
+    @Slot()
     def customer_service_group(self):
         groupBox = QGroupBox("Customer Service counters")
 
@@ -110,7 +109,7 @@ class QueueManagerWindow(QWidget):
 
         return groupBox
     
-    Slot()
+    @Slot()
     def assign_button_color(self, tickets_in_queue):
         green = '#1ced2e'
         red = '#fc3d3d'
@@ -124,19 +123,25 @@ class QueueManagerWindow(QWidget):
             return red
     
 
-    Slot()
+    @Slot()
     def decrease_queue(self, type, index):
         if (type == 'C' and self.checkout_queue[index] != 0):
             self.checkout_queue[index] -= 1
+            # Send msg of ticket attended: type,index
+            self.client.publish("BQMS/ticket_attended", f"C,{index + 1}")
         elif (type == 'P' and self.platform_queue[index] != 0):
             self.platform_queue[index] -= 1
+            # Send msg of ticket attended: type,index
+            self.client.publish("BQMS/ticket_attended", f"P,{index + 1}")
         elif (type == 'S' and self.customer_service_queue[index] != 0):
             self.customer_service_queue[index] -= 1
+            # Send msg of ticket attended: type,index
+            self.client.publish("BQMS/ticket_attended", f"S,{index + 1}")
 
         self.update_button_color()
         self.update_in_queue_text()
     
-    
+    @Slot()
     def increase_queue(self, msg):
         print(msg)
         ss = msg.split(',')
@@ -163,7 +168,7 @@ class QueueManagerWindow(QWidget):
         self.update_in_queue_text()
             
         
-    Slot()
+    @Slot()
     def update_in_queue_text(self):
         #print("update in queue text")
         self.label_counter1.setText(f'In queue: {self.checkout_queue[0]}')
@@ -185,7 +190,7 @@ class QueueManagerWindow(QWidget):
         self.label_counter9.setText(f'In queue: {self.customer_service_queue[0]}')
         print(f'In queue: {self.customer_service_queue[0]}')
     
-    Slot()
+    @Slot()
     def update_button_color(self):
         #print("update button color")
         self.button_counter1.setStyleSheet(f"background-color: {self.assign_button_color(self.checkout_queue[0])}")
@@ -224,6 +229,9 @@ def close_mqtt(client):
     logging.info("Thread mqtt_sub: finishing")
     client.loop_stop()
 
+def thread_2(app):
+    sys.exit(app.exec())
+
 if __name__ == '__main__':
     format = "%(asctime)s: %(message)s"
     logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
@@ -244,14 +252,7 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.lastWindowClosed.connect(lambda: close_mqtt(client))
     
-    #global checkout_queue
-    #global platform_queue
-    #global customer_service_queue
-    #checkout_queue = [1, 0, 2, 0, 4]
-    #platform_queue = [0, 0, 2]
-    #customer_service_queue = [3]
-    
-    widget = QueueManagerWindow()
+    widget = QueueManagerWindow(client)
     widget.setWindowTitle("Queue Manager")
     widget.show()
     
@@ -261,3 +262,5 @@ if __name__ == '__main__':
     # Run the main Qt loop
     logging.info("Main thread (GUI): starting")
     sys.exit(app.exec())
+    #t2 = threading.Thread(target=thread_2, args=(app,))
+    #t2.start()

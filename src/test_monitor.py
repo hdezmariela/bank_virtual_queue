@@ -1,24 +1,28 @@
 import sys
-from PySide6 import QtCore
-from PySide6.QtCore import Qt, Slot
+from PySide6.QtCore import Qt, Slot, Signal
 from PySide6.QtGui import QPixmap, QFont
 from PySide6.QtWidgets import (QApplication, QCheckBox, QGridLayout, QGroupBox,
         QMenu, QPushButton, QRadioButton, QVBoxLayout, QWidget, QLabel)
-import logging
 import paho.mqtt.client as mqtt
 import threading
-
+import logging
 
 class OutputMonitorWindow(QWidget):
-    #ticket_queue = ['C055', 1, 'P502', 2, 'S101', 5, 'C003', 4, '', '']
-    ticket_queue = ['', '', '', '', '', '', '', '', '', '']
-    add_counter = 0
-    adds = ['cocacola.jpg', 'uber.jpg', 'mac.jpg', 'uber2.jpg', 'walmart.jpg']
-    valueUpdated = QtCore.Signal(list)
-    
-    def __init__(self, parent=None):
+    # ticket_queue = ['', '', '', '', '', '', '', '', '', '']
+    # #ticket_queue = list = ['', '', '', '', '', '', '', '', '', '', 'P003', 1, 'P004', 2, 'C001', 2, 'S001', 1, 'S002', 1]
+    # add_counter = 0
+    # adds = ['cocacola.jpg', 'uber.jpg', 'mac.jpg', 'uber2.jpg', 'walmart.jpg']
+    # first_time = True
+    valueUpdated = Signal(list)
+    def __init__(self):
         super().__init__()
-
+        self.ticket_queue = ['', '', '', '', '', '', '', '', '', '']
+        #ticket_queue = list = ['', '', '', '', '', '', '', '', '', '', 'P003', 1, 'P004', 2, 'C001', 2, 'S001', 1, 'S002', 1]
+        self.add_counter = 0
+        self.adds = ['cocacola.jpg', 'uber.jpg', 'mac.jpg', 'uber2.jpg', 'walmart.jpg']
+        self.first_time = True
+        
+        
         self.grid = QGridLayout()
         self.grid.addWidget(self.current_ticket_group(), 0, 0, 4, 1)
         self.grid.addWidget(self.up_next_group1(self.ticket_queue[2], self.ticket_queue[3]), 0, 1)
@@ -26,12 +30,13 @@ class OutputMonitorWindow(QWidget):
         self.grid.addWidget(self.up_next_group3(self.ticket_queue[6], self.ticket_queue[7]), 2, 1)
         self.grid.addWidget(self.up_next_group4(self.ticket_queue[8], self.ticket_queue[9]), 3, 1)
         self.grid.addWidget(self.banner_group(), 4, 0, 1, 2)
-
+        
         self.setLayout(self.grid)
         
-        self.valueUpdated.connect(self.update_queue_and_add)
+        self.valueUpdated.connect(self.add_ticket_to_queue)
 
         #self.resize(1080, 300)
+    @Slot()
     def current_ticket_group(self):
         groupBox = QGroupBox("Now Serving")
         self.my_font24 = QFont("Times New Roman", 24)
@@ -45,7 +50,7 @@ class OutputMonitorWindow(QWidget):
         self.label_1.setFont(self.my_font35)
         self.label_1.setAlignment(Qt.AlignCenter)
         
-        self.label_2 = QLabel(self.ticket_queue[0])
+        self.label_2 = QLabel(self.ticket_queue[0] if len(self.ticket_queue) > 0 else '')
         self.label_2.setFont(self.my_font75b)
         self.label_2.setAlignment(Qt.AlignCenter)
         self.label_2.setStyleSheet("color: red")
@@ -55,16 +60,17 @@ class OutputMonitorWindow(QWidget):
         self.label_3.setFont(self.my_font24)
         self.label_3.setAlignment(Qt.AlignCenter)
         
-        self.label_4 = QLabel(f"Counter {self.ticket_queue[1]}")
+        self.label_4 = QLabel(f"Counter {self.ticket_queue[1]}" if len(self.ticket_queue) > 1 else '')
         self.label_4.setFont(self.my_font35b)
         self.label_4.setAlignment(Qt.AlignCenter)
         self.label_4.setStyleSheet("color: blue")
         
         # TEST TO DEBUG UPDATE FUNCTION
-        #button = QPushButton('holi')
-        #button.clicked.connect(lambda: self.update_queue_and_add(self.ticket_queue))
+        button = QPushButton('magia')
+        #button.clicked.connect(lambda: self.update_queue_and_add(['A055', 3, 'A502', 6, 'A101', 9, 'A003', 6, 'A152', 3]))
+        button.clicked.connect(self.magia)
         vbox = QVBoxLayout()
-        #vbox.addWidget(button)
+        vbox.addWidget(button)
         vbox.addWidget(self.label_1)
         vbox.addWidget(self.label_2)
         vbox.addWidget(self.label_3)
@@ -73,7 +79,12 @@ class OutputMonitorWindow(QWidget):
         groupBox.setLayout(vbox)
 
         return groupBox
-        
+
+    def magia(self):
+        print("magia")
+
+
+    @Slot()    
     def up_next_group1(self, id, counter):
         groupBox = QGroupBox("Up Next")
         
@@ -99,7 +110,8 @@ class OutputMonitorWindow(QWidget):
         groupBox.setLayout(vbox)
 
         return groupBox
-        
+    
+    @Slot()
     def up_next_group2(self, id, counter):
         groupBox = QGroupBox("Up Next")
         
@@ -126,6 +138,7 @@ class OutputMonitorWindow(QWidget):
 
         return groupBox
 
+    @Slot()
     def up_next_group3(self, id, counter):
         groupBox = QGroupBox("Up Next")
         
@@ -152,6 +165,7 @@ class OutputMonitorWindow(QWidget):
 
         return groupBox    
 
+    @Slot()
     def up_next_group4(self, id, counter):
         groupBox = QGroupBox("Up Next")
         
@@ -178,6 +192,7 @@ class OutputMonitorWindow(QWidget):
 
         return groupBox
 
+    @Slot()
     def banner_group(self):
         groupBox = QGroupBox("Advertisements")
         
@@ -193,28 +208,10 @@ class OutputMonitorWindow(QWidget):
         
         return groupBox
     
-    Slot()
-    def update_queue_and_add(self, queue):
-        print("entre aqui")
-        print
-        # Update text from now serving ticket
-        self.label_2.setText(queue[0])
-        self.label_4.setText(f"Counter {queue[1]}")
-        
-        # Update text from the next tickets in queue
-        self.label_5.setText(queue[2])
-        self.label_6.setText(f"Counter {queue[3]}" if bool(queue[3]) else '')
-        self.label_7.setText(queue[4])
-        self.label_8.setText(f"Counter {queue[5]}" if bool(queue[5]) else '')
-        self.label_9.setText(queue[6])
-        self.label_10.setText(f"Counter {queue[7]}" if bool(queue[7]) else '')
-        self.label_11.setText(queue[8])
-        self.label_12.setText(f"Counter {queue[9]}" if bool(queue[9]) else '')
-        
-        self.update_add()
     
-    Slot()
+    @Slot()
     def update_add(self):
+        print("llegue aqui")
         image = ''
         if (self.add_counter == len(self.adds)):
             self.add_counter = 0
@@ -224,87 +221,106 @@ class OutputMonitorWindow(QWidget):
         
         self.pixmap = QPixmap(f'images/{image}')
         self.label_add.setPixmap(self.pixmap)
-
-def on_connect(client, userdata, flags, rc):
-    logging.info("Connected with result code " + str(rc))
-    client.subscribe("BQMS/#")
-
-def parse_msg(msg):
-    print(msg)
-    ss = msg.split(',')
-    print(ss)
-    id = ss[0]
-    counter = int(ss[1])
-    print(id)
-    print(counter)
-    flag = False
+        print("llegue aqui anuncio")
+        widget.show()
     
-    return id,counter 
+    @Slot()
+    def add_ticket_to_queue(self, msg):
+        print("printing msg: {}".format(msg))
+        #print(msg)
+        ss = msg[0].split(',')
+        print(ss)
+        id = ss[0]
+        print('ss1')
+        print(ss[1])
+        counter = int(ss[1])
+        print(id)
+        print(counter)
+        flag = False
+        #replace = False
+        
+        for i in range(len(self.ticket_queue)):
+            if self.ticket_queue[i] == '' and self.ticket_queue[i+1] == '':
+                self.ticket_queue[i] = id
+                self.ticket_queue[i+1] = counter
+                flag = True
+                break
+            else:
+                flag = False
+        
+        if not flag:
+            self.ticket_queue.append(id)
+            self.ticket_queue.append(counter)
+        
+        print("####### TICKET QUEUE ######")
+        print(self.ticket_queue)
+        
+        # Update labels
+        print('llegue auqi')
+        self.label_5.setText(self.ticket_queue[0])
+        print('llegue auqi22')
+        self.label_6.setText(f"Counter {self.ticket_queue[1]}")
+        self.label_7.setText(self.ticket_queue[4])
+        self.label_8.setText(f"Counter {self.ticket_queue[5]}")
+        self.label_9.setText(self.ticket_queue[6])
+        self.label_10.setText(f"Counter {self.ticket_queue[7]}")
+        self.label_11.setText(self.ticket_queue[8])
+        self.label_12.setText(f"Counter {self.ticket_queue[9]}")
+        print('llegue auqi')
+        widget.show()
+        self.update_add()
+        print('llegue auqi')
+        
+        #widget.main()
+        
     
-central_queue = [' ', ' ']
-def on_message(client, userdata, msg):
-    global central_queue
-    if msg.topic == "BQMS/new_ticket":
-        print(f"New ticket ID,counter: {str(msg.payload)}")
-        res1 = parse_msg(str(msg.payload, "utf-8"))
-        central_queue = [x for x in central_queue if x]
-        print("print1")
-        print(central_queue)
-        id = res1[0]
-        counter = res1[1]
-        if id[0] == 'P':
-            counter += 5
-        elif id[0] == 'S':
-            counter = 9
-        central_queue.append(id)
-        central_queue.append(counter)
-        if len(central_queue) < 10:
-            for i in range(10 - len(central_queue)):
-                central_queue.append('')
-        print("print2s")
-        print(central_queue)
-        #userdata[0].ticket_queue = central_queue
-        userdata[0].valueUpdated.emit(central_queue)
-    elif msg.topic == "BQMS/ticket_attended":
-        print(f"ticket attended ID,counter: {str(msg.payload)}")
-        res2 = parse_msg(str(msg.payload, "utf-8"))
-        print(res2[0])
-        print(res2[1])
-        type = res2[0]
-        counter = res2[1]
-        if type == 'P':
-            counter += 5
-        elif type == 'S':
-            counter = 9
+    @Slot()
+    def update_serving_now(self, msg):
+        print(msg)
+        ss = msg.split(',')
+        print(ss)
+        #type = ss[0]
+        type = 'C'
+        #counter = int(ss[1])
+        counter = 3
+        print(type)
+        print(counter)
         
         found_it = False
         index = ''
-
-        for i in range(len(central_queue)):
-            res = isinstance(central_queue[i], str)
-            if res and len(central_queue[i]) > 0:
-                id = central_queue[i]
+        
+        for i in range(len(self.ticket_queue)):
+            res = isinstance(self.ticket_queue[i], str)
+            if res and len(self.ticket_queue[i]) > 0:
+                id = self.ticket_queue[i]
                 if id[0] == type:
-                    if central_queue[i+1] == counter:
-                        print(central_queue[i])
+                    if self.ticket_queue[i+1] == counter:
+                        print(self.ticket_queue[i])
                         found_it = True
                         index = i
-                        break
-            
         
-        central_queue[0] = central_queue[index]
-        central_queue[1] = central_queue[index+1]
+        del self.ticket_queue[index]
+        del self.ticket_queue[index]
         
-        del central_queue[index]
-        del central_queue[index]
-        
-        if len(central_queue) < 10:
-            for i in range(10 - len(central_queue)):
-                central_queue.append('')
-        
-        userdata[0].valueUpdated.emit(central_queue)
-        
-        
+        # Update text from now serving ticket
+        self.label_2.setText(self.ticket_queue[index])
+        self.label_4.setText(f"Counter {self.ticket_queue[index + 1]}")
+        self.update_add()
+    
+def on_connect(client, userdata, flags, rc):
+    print("Se conecto con mqtt " + str(rc))
+    client.subscribe("BQMS/#")
+    
+def on_message(client, userdata, msg):
+    if msg.topic == "BQMS/new_ticket":
+        print(f"New ticket ID,counter: {str(msg.payload)}")
+        #userdata[0].update_queue_and_add(str(msg.payload, "utf-8"))
+        #userdata[0].add_ticket_to_queue(str(msg.payload, "utf-8"))
+        userdata[0].valueUpdated.emit([str(msg.payload, "utf-8")])
+        print("estoy en on msg")
+    elif msg.topic == "BQMS/ticket_attended":
+        print(f"Tickect attended: {str(msg.payload)}")
+        userdata[0].update_serving_now(str(msg.payload, "utf-8"))
     print(msg.topic+" "+str(msg.payload))
 
 def thread_function(client):
@@ -316,10 +332,17 @@ def close_mqtt(client):
     logging.info("Thread mqtt_sub: finishing")
     client.loop_stop()
 
+def destroy():
+    print("about to be destroyed")
+
+def Start():
+    global widget
+    widget = OutputMonitorWindow()
+    widget.setWindowTitle("Output Monitor")
+    widget.show()
+    return widget
+
 if __name__ == '__main__':
-    format = "%(asctime)s: %(message)s"
-    logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
-    
     # mqtt client
     client_userdata = []
     client = mqtt.Client(userdata=client_userdata)
@@ -331,17 +354,22 @@ if __name__ == '__main__':
     # Start mqtt subscribe thread
     mqtt_sub_thread = threading.Thread(target=thread_function, args=(client,))
     mqtt_sub_thread.start()
-    
+
     app = QApplication(sys.argv)
+    #app.setQuitOnLastWindowClosed(False)
     app.lastWindowClosed.connect(lambda: close_mqtt(client))
+    #app.destroyed.connect(destroy)
     
-    widget = OutputMonitorWindow()
-    widget.setWindowTitle("Output Monitor")
-    widget.show()
-    
+    #global widget
+    #widget = OutputMonitorWindow()
+    #widget.setWindowTitle("Output Monitor")
+    #widget.show()
+    window = Start()
     client_userdata.append(widget)
-    print(client_userdata)
     
+    
+    app.exec()
     # Run the main Qt loop
     logging.info("Main thread (GUI): starting")
-    sys.exit(app.exec())
+    #print(app.exec())
+    #sys.exit(app.exec())
