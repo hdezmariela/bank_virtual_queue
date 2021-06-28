@@ -43,12 +43,15 @@ As previously mentioned, this queue management system consists of three main sec
 
 ### Ticket Station
 The ticket station allows you to get a ticket for a specific service from the bank. There are three available services: Checkout, Platform and Customer Service.
+
 ![](src/images/gui_examples/ticket_station.png)
 
 ### Queue Manager
 The queue manager shows all the tickets in queue that each counter has. The red button indicates it has one or more tickets in queue. The green buttons shows there are no tickets in queue for this counter. If you press a red button, it means that the counter will attend the first ticket in queue. It will reduce by one the number of tickets in queue. Also, this will show the ticket attented on the output monitor.
+
 ![](src/images/gui_examples/queue_manager.png)
 
 ### Output Monitor
 The output monitor shows the ticket that is now serving and the ticket that are on queue. 
+
 ![](src/images/gui_examples/output_monitor.png)
