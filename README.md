@@ -42,8 +42,9 @@ python output_monitor.py
 As previously mentioned, this queue management system consists of three main sections, each one has a GUI. Will be shown below.
 
 ### Ticket Station
-* ![](src/images/gui_examples/ticket_station.png)
+The ticket station allows you to get a ticket for a specific service from the bank. There are three available services: 
+![](src/images/gui_examples/ticket_station.png)
 ### Queue Manager
-* ![](src/images/gui_examples/queue_manager.png)
+![](src/images/gui_examples/queue_manager.png)
 ### Output Monitor
-* ![](src/images/gui_examples/output_monitor.png)
+![](src/images/gui_examples/output_monitor.png)
