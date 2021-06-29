@@ -10,7 +10,6 @@ import threading
 
 
 class OutputMonitorWindow(QWidget):
-    #ticket_queue = ['C055', 1, 'P502', 2, 'S101', 5, 'C003', 4, '', '']
     ticket_queue = ['', '', '', '', '', '', '', '', '', '']
     add_counter = 0
     adds = ['cocacola.jpg', 'uber.jpg', 'mac.jpg', 'uber2.jpg', 'walmart.jpg']

@@ -190,7 +190,6 @@ if __name__ == "__main__":
     mqtt_sub_thread = threading.Thread(target=thread_function, args=(client,))
     mqtt_sub_thread.start()
     
-    
     # GUI
     app = QApplication(sys.argv)
 
